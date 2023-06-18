@@ -6,7 +6,7 @@ import java.util.List;
 
 @Getter
 public class Request {
-    private Integer totalNumberOfCylinders;
     private Integer startCylinderNumber;
     private List<CylinderDto> requestedCylinders;
+    private AlgorithmDto algorithm;
 }
