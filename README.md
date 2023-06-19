@@ -37,7 +37,34 @@ FCFS, SSTF, Scan, C-Scan, Look, C-Look
   - throughput 증가 (batch system에 적합)
   - mean response time 감소
 - 단점
-  - starvation 현상 발생 가능
+  - starvation 발생 가능
   - predictability 감소 (starvation이 발생하는 요청들은 언제 처리될지 예측하기 어려움)   
 
-### 
+### `Scan`
+- 현재 head의 진행 방향에서 가장 가까운 요청을 처리
+- 첫 cylinder 또는 마지막 cylinder에 도달하면 방향을 반대로 바꾸어 진행
+- 장점
+  - SSTF 알고리즘의 starvation 문제 해결
+  - throughput 및 평균 응답 시간 우수
+- 단점
+  - 진행방향의 반대쪽 끝 요청들의 응답 시간 증가
+
+### `C-Scan (Circular-Scan)`
+- 현재 head의 진행 방향에서 가장 가까운 요청을 처리하며, 진행 방향은 고정
+- 첫 cylinder 또는 마지막 cylinder에 도착한다면, 반대편 끝 실린더로 이동 후 재시작
+- 장점
+  - Scan 대비 균등한 기회 제공
+ 
+### `Look`
+- Scan과 유사하며, 현재 진행 방향에 더 이상 요청이 없으면 방향 전환
+- Elevator 알고리즘이라고도 불림
+  - 층 버튼 누른곳까지만 이동하기 때문
+- Scan 알고리즘의 실제 구현 방법
+- 장점
+  - Scan 알고리즘에서의 불필요한 head 이동 제거
+
+### `C-Look`
+- C-Scan과 유사하며, 현재 진행 방향에 더 이상 요청이 없으면 제일 반대편에 요청된 실린더로 이동 후 재시작
+- 장점
+  - C-Scan 알고리즘에서의 불필요한 head 이동 제거
+  
