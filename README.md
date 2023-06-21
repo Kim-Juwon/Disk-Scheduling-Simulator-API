@@ -53,7 +53,7 @@ FCFS, SSTF, Scan, C-Scan, Look, C-Look
 - 현재 head의 진행 방향에서 가장 가까운 요청을 처리하며, 진행 방향은 고정
 - 첫 cylinder 또는 마지막 cylinder에 도착한다면, 반대편 끝 실린더로 이동 후 재시작
 - 장점
-  - Scan 대비 균등한 기회 제공
+  - Scan 알고리즘 대비 균등한 기회 제공
  
 ### `Look`
 - Scan과 유사하며, 현재 진행 방향에 더 이상 요청이 없으면 방향 전환
