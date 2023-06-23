@@ -30,10 +30,17 @@ public class InformationPerTimeDto {
     }
 
     public static InformationPerTimeDto of(Integer currentTime, Integer currentCylinderNumber, Cylinder targetCylinder, Queue queue) {
+        Integer targetCylinderNumber;
+        if (targetCylinder == null) {
+            targetCylinderNumber = null;
+        } else {
+            targetCylinderNumber = targetCylinder.getNumber();
+        }
+
         return new InformationPerTimeDto(
                 currentTime,
                 currentCylinderNumber,
-                targetCylinder.getNumber(),
+                targetCylinderNumber,
                 queue.peekCurrentCylinders().stream()
                         .map(Cylinder::getNumber)
                         .collect(Collectors.toList())

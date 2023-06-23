@@ -39,6 +39,18 @@ public class Cylinder {
         return this.arrivalTime - cylinder.arrivalTime;
     }
 
+    public int getDistanceFrom(int cylinderNumber) {
+        return Math.abs(number - cylinderNumber);
+    }
+
+    public boolean isNumberGreaterOrEqualsFrom(int cylinderNumber) {
+        return number >= cylinderNumber;
+    }
+
+    public boolean isNumberLessOrEqualsFrom(int cylinderNumber) {
+        return number <= cylinderNumber;
+    }
+
     @Override
     public String toString() {
         return String.valueOf(number);
