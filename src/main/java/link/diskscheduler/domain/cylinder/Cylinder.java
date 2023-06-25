@@ -43,8 +43,16 @@ public class Cylinder {
         return Math.abs(number - cylinderNumber);
     }
 
+    public boolean isNumberGreaterThan(Cylinder cylinder) {
+        return number > cylinder.getNumber();
+    }
+
     public boolean isNumberGreaterOrEqualsFrom(int cylinderNumber) {
         return number >= cylinderNumber;
+    }
+
+    public boolean isNumberLessThan(Cylinder cylinder) {
+        return number < cylinder.getNumber();
     }
 
     public boolean isNumberLessOrEqualsFrom(int cylinderNumber) {

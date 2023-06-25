@@ -29,6 +29,9 @@ public abstract class SeekTimeScheduler {
         if (algorithm.equals(AlgorithmDto.SCAN)) {
             return ScanScheduler.from(request);
         }
+        if (algorithm.equals(AlgorithmDto.C_SCAN)) {
+            return CScanScheduler.from(request);
+        }
         return null;
     }
 }
