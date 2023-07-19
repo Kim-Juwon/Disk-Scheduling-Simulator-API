@@ -11,22 +11,39 @@ import java.util.List;
 
 public class ScanScheduler extends SeekTimeScheduler {
     private static final int ZERO = 0;
-    private static final Cylinder EMPTY = null;
     private final ScanQueue queue;
-    private ScanDirection scanDirection;
-    private int firstCylinderNumber;
-    private int lastCylinderNumber;
+    private final int firstCylinderNumber;
+    private final int lastCylinderNumber;
+    private ScanDirection currentScanDirection;
 
-    private ScanScheduler(Cylinders notArrivedCylinders, Cylinder targetCylinder, int currentCylinderNumber, int currentTime, ScanQueue scanQueue, ScanDirection scanDirection, int firstCylinderNumber, int lastCylinderNumber) {
-        super(notArrivedCylinders, targetCylinder, currentCylinderNumber, currentTime);
+    private ScanScheduler(
+            Cylinders notArrivedCylinders,
+            Cylinder currentTargetCylinder,
+            int currentHeadLocation,
+            int currentTime,
+            ScanQueue scanQueue,
+            int firstCylinderNumber,
+            int lastCylinderNumber,
+            ScanDirection currentScanDirection
+    ) {
+        super(notArrivedCylinders, currentTargetCylinder, currentHeadLocation, currentTime);
         this.queue = scanQueue;
-        this.scanDirection = scanDirection;
         this.firstCylinderNumber = firstCylinderNumber;
         this.lastCylinderNumber = lastCylinderNumber;
+        this.currentScanDirection = currentScanDirection;
     }
 
     public static ScanScheduler from(Request request) {
-        return new ScanScheduler(Cylinders.from(request.getRequestedCylinders()), EMPTY, request.getStartCylinderNumber(), ZERO, ScanQueue.create(), request.getScanDirection().getScanDirection(), ZERO, request.getTotalCylinderCount() - 1);
+        return new ScanScheduler(
+                Cylinders.from(request.getRequestedCylinders()),
+                null,
+                request.getStartCylinderNumber(),
+                ZERO,
+                ScanQueue.create(),
+                ZERO,
+                request.getTotalCylinderCount() - 1,
+                request.getScanDirection().getScanDirection()
+        );
     }
 
     @Override
@@ -37,36 +54,40 @@ public class ScanScheduler extends SeekTimeScheduler {
             addArrivedCylindersToQueue();
             decideNextTargetCylinder();
 
-            // 타겟 실린더가 없으면 위치는 그대로 유지하고 다음 시간으로 이동
-            if (isTargetCylinderEmpty()) {
-                response.add(currentTime, currentCylinderNumber, targetCylinder, queue);
+            // 현재 타겟 실린더가 없으면, 위치를 유지하며 다음 시간으로 이동
+            if (isCurrentTargetCylinderEmpty()) {
+                response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue);
                 increaseWaitingTimeOfQueue();
                 increaseCurrentTime();
                 continue;
             }
 
-            if (isReached()) {
-                // 바로 다음 순서들에 같은 실린더 요청이 있는지 확인
-                Cylinders sameCylinders = queue.getSameCylinders(targetCylinder.getNumber());
+            // 헤드가 현재 타겟 실린더에 도착하였을 경우
+            if (didHeadReachTargetCylinder()) {
+                // queue에 있는 동일 번호 실린더들을 가져온다.
+                Cylinders sameCylinders = queue.getSameCylindersFrom(currentTargetCylinder.getNumber());
 
+                /*
+                     queue에 동일 번호 실린더가 없다면 현재 타겟 실린더만 현재 시간 상태 결과에 저장한다.
+                     queue에 동일 번호 실린더가 1개 이상 존재한다면 해당 실린더들을 추가해 현재 시간 상태 결과에 저장한다.
+                 */
                 if (sameCylinders.isEmpty()) {
-                    response.add(currentTime, currentCylinderNumber, targetCylinder, queue, targetCylinder);
-                } else {
-                    sameCylinders.addToFront(targetCylinder);
-                    response.add(currentTime, currentCylinderNumber, targetCylinder, queue, sameCylinders);
+                    response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue, currentTargetCylinder);
+                }
+                else {
+                    sameCylinders.addToFront(currentTargetCylinder);
+                    response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue, sameCylinders);
                 }
 
-                eliminateTargetCylinder();
+                eliminateCurrentTargetCylinder();
                 decideNextTargetCylinder();
             } else {
-                response.add(currentTime, currentCylinderNumber, targetCylinder, queue);
+                response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue);
             }
 
-            if (!isTargetCylinderEmpty()) {
-                targetCylinder.increaseWaitingTime();
-            }
+            increaseWaitingTimeOfCurrentTargetCylinder();
 
-            moveTowardTargetCylinder();
+            moveHead();
 
             increaseWaitingTimeOfQueue();
             increaseCurrentTime();
@@ -81,7 +102,7 @@ public class ScanScheduler extends SeekTimeScheduler {
     }
 
     private boolean isCylinderExistToSchedule() {
-        return !notArrivedCylinders.isEmpty() || !queue.isEmpty() || targetCylinder != EMPTY;
+        return !notArrivedCylinders.isEmpty() || !queue.isEmpty() || currentTargetCylinder != null;
     }
 
     private void decideNextTargetCylinder() {
@@ -89,47 +110,58 @@ public class ScanScheduler extends SeekTimeScheduler {
             return;
         }
 
-        if (!isTargetCylinderEmpty()) {
-            queue.addFront(targetCylinder);
+        if (!isCurrentTargetCylinderEmpty()) {
+            queue.addFront(currentTargetCylinder);
         }
-        targetCylinder = queue.getNextCylinder(currentCylinderNumber, scanDirection);
+        currentTargetCylinder = queue.getNextCylinderFrom(currentHeadLocation, currentScanDirection);
     }
 
-    private boolean isTargetCylinderEmpty() {
-        return targetCylinder == EMPTY;
+    private boolean isCurrentTargetCylinderEmpty() {
+        return currentTargetCylinder == null;
     }
 
-    private void eliminateTargetCylinder() {
-        targetCylinder = EMPTY;
+    private void eliminateCurrentTargetCylinder() {
+        currentTargetCylinder = null;
     }
 
-    private boolean isReached() {
-        return targetCylinder.hasSameNumber(currentCylinderNumber);
+    private boolean didHeadReachTargetCylinder() {
+        return currentTargetCylinder.hasSameNumberAs(currentHeadLocation);
     }
 
-    private void moveTowardTargetCylinder() {
-        if (isTargetCylinderEmpty()) {
+    private void increaseWaitingTimeOfCurrentTargetCylinder() {
+        if (isCurrentTargetCylinderEmpty()) {
             return;
         }
 
-        if (isFirstCylinder() || isLastCylinder()) {
-            reverseDirection();
+        currentTargetCylinder.increaseWaitingTime();
+    }
+
+    private void moveHead() {
+        if (isCurrentTargetCylinderEmpty()) {
+            return;
         }
 
-        if (scanDirection.equals(ScanDirection.LEFT)) {
+        if (isHeadLocationEndpointCylinder()) {
+            reverseScanDirection();
+        }
+        moveHeadToScanDirection();
+    }
+
+    private void moveHeadToScanDirection() {
+        if (currentScanDirection.equals(ScanDirection.LEFT)) {
             moveToLeft();
         }
-        if (scanDirection.equals(ScanDirection.RIGHT)) {
+        if (currentScanDirection.equals(ScanDirection.RIGHT)) {
             moveToRight();
         }
     }
 
     private void moveToRight() {
-        currentCylinderNumber++;
+        currentHeadLocation++;
     }
 
     private void moveToLeft() {
-        currentCylinderNumber--;
+        currentHeadLocation--;
     }
 
     private void increaseCurrentTime() {
@@ -140,21 +172,25 @@ public class ScanScheduler extends SeekTimeScheduler {
         queue.increaseWaitingTime();
     }
 
-    private boolean isFirstCylinder() {
-        return currentCylinderNumber == firstCylinderNumber;
+    private boolean isHeadLocationEndpointCylinder() {
+        return isHeadLocationFirstCylinder() || isHeadLocationLastCylinder();
     }
 
-    private boolean isLastCylinder() {
-        return currentCylinderNumber == lastCylinderNumber;
+    private boolean isHeadLocationFirstCylinder() {
+        return currentHeadLocation == firstCylinderNumber;
     }
 
-    private void reverseDirection() {
-        switch (scanDirection) {
+    private boolean isHeadLocationLastCylinder() {
+        return currentHeadLocation == lastCylinderNumber;
+    }
+
+    private void reverseScanDirection() {
+        switch (currentScanDirection) {
             case LEFT:
-                scanDirection = ScanDirection.RIGHT;
+                currentScanDirection = ScanDirection.RIGHT;
                 break;
             case RIGHT:
-                scanDirection = ScanDirection.LEFT;
+                currentScanDirection = ScanDirection.LEFT;
                 break;
         }
     }

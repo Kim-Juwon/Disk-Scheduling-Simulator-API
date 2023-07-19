@@ -47,7 +47,7 @@ public class Cylinders {
         for (int i = 0; i < cylinders.size(); i++) {
             Cylinder cylinder = cylinders.get(i);
 
-            if (cylinder.hasSameArrivalTime(time)) {
+            if (cylinder.hasSameArrivalTimeAs(time)) {
                 arrivedCylinders.add(cylinder);
                 cylinders.remove(i);
                 i--;

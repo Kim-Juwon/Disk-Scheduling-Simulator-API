@@ -36,7 +36,7 @@ public class SSTFQueue extends Queue {
         return cylinders;
     }
 
-    public Cylinder getNextCylinder(int currentCylinderNumber) {
+    public Cylinder getNextCylinderFrom(int currentHeadLocation) {
         if (isEmpty()) {
             return null;
         }
@@ -46,8 +46,8 @@ public class SSTFQueue extends Queue {
         for (int i = 1; i < cylinders.size(); i++) {
             Cylinder cylinder = cylinders.get(i);
 
-            int distance = cylinder.getDistanceFrom(currentCylinderNumber);
-            int shortestDistance = shortestSeekTimeCylinder.getDistanceFrom(currentCylinderNumber);
+            int distance = cylinder.getDistanceFrom(currentHeadLocation);
+            int shortestDistance = shortestSeekTimeCylinder.getDistanceFrom(currentHeadLocation);
             if (distance < shortestDistance) {
                 shortestSeekTimeCylinder = cylinder;
             }
@@ -57,12 +57,12 @@ public class SSTFQueue extends Queue {
         return shortestSeekTimeCylinder;
     }
 
-    public Cylinders getSameCylinders(int cylinderNumber) {
+    public Cylinders getSameCylindersFrom(int cylinderNumber) {
         Cylinders sameCylinders = Cylinders.create();
 
         for (int i = 0; i < cylinders.size(); i++) {
             Cylinder cylinder = cylinders.get(i);
-            if (cylinder.hasSameNumber(cylinderNumber)) {
+            if (cylinder.hasSameNumberAs(cylinderNumber)) {
                 sameCylinders.addToBack(cylinder);
                 cylinders.remove(i);
                 i--;

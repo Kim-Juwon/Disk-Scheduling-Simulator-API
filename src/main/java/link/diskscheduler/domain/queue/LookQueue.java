@@ -11,12 +11,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class ScanQueue extends Queue {
+public class LookQueue extends Queue {
     private static final int FRONT = 0;
     private final List<Cylinder> cylinders;
 
-    public static ScanQueue create() {
-        return new ScanQueue(new LinkedList<>());
+    public static LookQueue create() {
+        return new LookQueue(new LinkedList<>());
     }
 
     @Override
@@ -45,8 +45,8 @@ public class ScanQueue extends Queue {
 
         Cylinder nextCylinder = null;
 
-        List<Cylinder> cylindersInRange = new ArrayList<>(); // 현재 스캔 방향 안쪽에 있는 실린더들
-        List<Cylinder> cylindersOutRange = new ArrayList<>(); // 현재 스캔 방향에 없는 실린더들
+        List<Cylinder> cylindersInRange = new ArrayList<>();
+        List<Cylinder> cylindersOutRange = new ArrayList<>();
 
         cylinders.forEach(cylinder -> {
             if (isCylinderInRange(cylinder, currentHeadLocation, currentScanDirection)) {

@@ -11,8 +11,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class SeekTimeScheduler {
     protected final Cylinders notArrivedCylinders;
-    protected Cylinder targetCylinder;
-    protected int currentCylinderNumber;
+    protected Cylinder currentTargetCylinder;
+    protected int currentHeadLocation;
     protected int currentTime;
 
     public abstract Response schedule();
@@ -32,6 +32,13 @@ public abstract class SeekTimeScheduler {
         if (algorithm.equals(AlgorithmDto.C_SCAN)) {
             return CScanScheduler.from(request);
         }
+        if (algorithm.equals(AlgorithmDto.LOOK)) {
+            return LookScheduler.from(request);
+        }
+        if (algorithm.equals(AlgorithmDto.C_LOOK)) {
+            return CLookScheduler.from(request);
+        }
+
         return null;
     }
 }

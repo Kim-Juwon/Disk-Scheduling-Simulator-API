@@ -10,16 +10,26 @@ import java.util.List;
 
 public class FCFSScheduler extends SeekTimeScheduler {
     private static final int ZERO = 0;
-    private static final Cylinder EMPTY = null;
     private final FCFSQueue queue;
 
-    private FCFSScheduler(Cylinders notArrivedCylinders, Cylinder targetCylinder, int currentCylinderNumber, int currentTime, FCFSQueue fcfsQueue) {
-        super(notArrivedCylinders, targetCylinder, currentCylinderNumber, currentTime);
+    private FCFSScheduler(
+            Cylinders notArrivedCylinders,
+            Cylinder currentTargetCylinder,
+            int currentHeadLocation,
+            int currentTime,
+            FCFSQueue fcfsQueue) {
+        super(notArrivedCylinders, currentTargetCylinder, currentHeadLocation, currentTime);
         this.queue = fcfsQueue;
     }
 
     public static FCFSScheduler from(Request request) {
-        return new FCFSScheduler(Cylinders.from(request.getRequestedCylinders()), EMPTY, request.getStartCylinderNumber(), ZERO, FCFSQueue.create());
+        return new FCFSScheduler(
+                Cylinders.from(request.getRequestedCylinders()),
+                null,
+                request.getStartCylinderNumber(),
+                ZERO,
+                FCFSQueue.create()
+        );
     }
 
     @Override
@@ -30,36 +40,40 @@ public class FCFSScheduler extends SeekTimeScheduler {
             addArrivedCylindersToQueue();
             decideNextTargetCylinder();
 
-            // 요청 후 대기중인 실린더가 없으면 위치는 그대로 유지하고 다음 시간으로 이동
-            if (isTargetCylinderEmpty()) {
-                response.add(currentTime, currentCylinderNumber, targetCylinder, queue);
+            // 현재 타겟 실린더가 없으면, 위치를 유지하며 다음 시간으로 이동
+            if (isCurrentTargetCylinderEmpty()) {
+                response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue);
                 increaseWaitingTimeOfQueue();
                 increaseCurrentTime();
                 continue;
             }
 
-            if (isReached()) {
-                // 바로 다음 순서들에 같은 실린더 요청이 있는지 확인
-                Cylinders nextSameCylinders = queue.getNextSameCylinders(targetCylinder.getNumber());
+            // 헤드가 현재 타겟 실린더에 도착하였을 경우
+            if (didHeadReachTargetCylinder()) {
+                // 바로 다음 순서부터 존재하는 동일 번호 실린더들을 가져온다.
+                Cylinders immediatelyNextSameCylinders = queue.getImmediatelyNextSameCylindersFrom(currentTargetCylinder.getNumber());
 
-                if (nextSameCylinders.isEmpty()) {
-                    response.add(currentTime, currentCylinderNumber, targetCylinder, queue, targetCylinder);
-                } else {
-                    nextSameCylinders.addToFront(targetCylinder);
-                    response.add(currentTime, currentCylinderNumber, targetCylinder, queue, nextSameCylinders);
+                /*
+                     queue에 바로 다음 순서부터의 동일 번호 실린더가 없다면 현재 타겟 실린더만 현재 시간 상태 결과에 저장한다.
+                     queue에 바로 다음 순서부터의 동일 번호 실린더가 1개 이상 존재한다면 해당 실린더들을 추가해 현재 시간 상태 결과에 저장한다.
+                 */
+                if (immediatelyNextSameCylinders.isEmpty()) {
+                    response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue, currentTargetCylinder);
+                }
+                else {
+                    immediatelyNextSameCylinders.addToFront(currentTargetCylinder);
+                    response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue, immediatelyNextSameCylinders);
                 }
 
-                eliminateTargetCylinder();
+                eliminateCurrentTargetCylinder();
                 decideNextTargetCylinder();
             } else {
-                response.add(currentTime, currentCylinderNumber, targetCylinder, queue);
+                response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue);
             }
 
-            if (!isTargetCylinderEmpty()) {
-                targetCylinder.increaseWaitingTime();
-            }
+            increaseWaitingTimeOfCurrentTargetCylinder();
 
-            moveTowardTargetCylinder();
+            moveHead();
 
             increaseWaitingTimeOfQueue();
             increaseCurrentTime();
@@ -74,34 +88,47 @@ public class FCFSScheduler extends SeekTimeScheduler {
     }
 
     private boolean isCylinderExistToSchedule() {
-        return !notArrivedCylinders.isEmpty() || !queue.isEmpty() || targetCylinder != EMPTY;
+        return !notArrivedCylinders.isEmpty() || !queue.isEmpty() || currentTargetCylinder != null;
     }
 
     private void decideNextTargetCylinder() {
-        if (isTargetCylinderEmpty() && !queue.isEmpty()) {
-            targetCylinder = queue.getNextCylinder();
-        }
-    }
-
-    private boolean isTargetCylinderEmpty() {
-        return targetCylinder == EMPTY;
-    }
-
-    private void eliminateTargetCylinder() {
-        targetCylinder = EMPTY;
-    }
-
-    private boolean isReached() {
-        return targetCylinder.hasSameNumber(currentCylinderNumber);
-    }
-
-    private void moveTowardTargetCylinder() {
-        if (isTargetCylinderEmpty()) {
+        if (!isCurrentTargetCylinderEmpty() || queue.isEmpty()) {
             return;
         }
 
-        int subtractedDistance = targetCylinder.subtractNumber(currentCylinderNumber);
+        currentTargetCylinder = queue.getNextCylinder();
+    }
 
+    private boolean isCurrentTargetCylinderEmpty() {
+        return currentTargetCylinder == null;
+    }
+
+    private void eliminateCurrentTargetCylinder() {
+        currentTargetCylinder = null;
+    }
+
+    private boolean didHeadReachTargetCylinder() {
+        return currentTargetCylinder.hasSameNumberAs(currentHeadLocation);
+    }
+
+    private void increaseWaitingTimeOfCurrentTargetCylinder() {
+        if (isCurrentTargetCylinderEmpty()) {
+            return;
+        }
+
+        currentTargetCylinder.increaseWaitingTime();
+    }
+
+    private void moveHead() {
+        if (isCurrentTargetCylinderEmpty()) {
+            return;
+        }
+
+        int subtractedDistance = currentTargetCylinder.subtractNumberFrom(currentHeadLocation);
+        moveHeadToScanDirectionFrom(subtractedDistance);
+    }
+
+    private void moveHeadToScanDirectionFrom(int subtractedDistance) {
         if (isPositive(subtractedDistance)) {
             moveToRight();
         }
@@ -119,11 +146,11 @@ public class FCFSScheduler extends SeekTimeScheduler {
     }
 
     private void moveToRight() {
-        currentCylinderNumber++;
+        currentHeadLocation++;
     }
 
     private void moveToLeft() {
-        currentCylinderNumber--;
+        currentHeadLocation--;
     }
 
     private void increaseCurrentTime() {

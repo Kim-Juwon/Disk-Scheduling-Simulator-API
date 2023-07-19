@@ -19,15 +19,15 @@ public class Cylinder {
                 .build();
     }
 
-    public int subtractNumber(int cylinderNumber) {
+    public int subtractNumberFrom(int cylinderNumber) {
         return number - cylinderNumber;
     }
 
-    public boolean hasSameNumber(int cylinderNumber) {
+    public boolean hasSameNumberAs(int cylinderNumber) {
         return number == cylinderNumber;
     }
 
-    public boolean hasSameArrivalTime(int arrivalTime) {
+    public boolean hasSameArrivalTimeAs(int arrivalTime) {
         return this.arrivalTime == arrivalTime;
     }
 
@@ -47,12 +47,20 @@ public class Cylinder {
         return number > cylinder.getNumber();
     }
 
+    public boolean isNumberGreaterThan(int cylinderNumber) {
+        return number > cylinderNumber;
+    }
+
     public boolean isNumberGreaterOrEqualsFrom(int cylinderNumber) {
         return number >= cylinderNumber;
     }
 
     public boolean isNumberLessThan(Cylinder cylinder) {
         return number < cylinder.getNumber();
+    }
+
+    public boolean isNumberLessThan(int cylinderNumber) {
+        return number < cylinderNumber;
     }
 
     public boolean isNumberLessOrEqualsFrom(int cylinderNumber) {

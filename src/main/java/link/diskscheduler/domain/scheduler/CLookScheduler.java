@@ -2,33 +2,51 @@ package link.diskscheduler.domain.scheduler;
 
 import link.diskscheduler.domain.cylinder.Cylinder;
 import link.diskscheduler.domain.cylinder.Cylinders;
-import link.diskscheduler.domain.queue.SSTFQueue;
+import link.diskscheduler.domain.direction.ScanDirection;
+import link.diskscheduler.domain.queue.CLookQueue;
 import link.diskscheduler.dto.request.Request;
 import link.diskscheduler.dto.response.Response;
 
 import java.util.List;
 
-public class SSTFScheduler extends SeekTimeScheduler {
+public class CLookScheduler extends SeekTimeScheduler {
     private static final int ZERO = 0;
-    private final SSTFQueue queue;
+    private final CLookQueue queue;
+    private final int firstCylinderNumber;
+    private final int lastCylinderNumber;
+    private ScanDirection currentScanDirection;
+    private boolean isHeadOnTheWayBack; // 헤드가 circular scan을 위해 제일 처음 or 끝 실린더로 이동중인지 여부
 
-    private SSTFScheduler(
+    private CLookScheduler(
             Cylinders notArrivedCylinders,
             Cylinder currentTargetCylinder,
             int currentHeadLocation,
             int currentTime,
-            SSTFQueue sstfQueue) {
+            CLookQueue cLookQueue,
+            int firstCylinderNumber,
+            int lastCylinderNumber,
+            ScanDirection currentScanDirection,
+            boolean isHeadOnTheWayBack
+    ) {
         super(notArrivedCylinders, currentTargetCylinder, currentHeadLocation, currentTime);
-        this.queue = sstfQueue;
+        this.queue = cLookQueue;
+        this.firstCylinderNumber = firstCylinderNumber;
+        this.lastCylinderNumber = lastCylinderNumber;
+        this.currentScanDirection = currentScanDirection;
+        this.isHeadOnTheWayBack = isHeadOnTheWayBack;
     }
 
-    public static SSTFScheduler from(Request request) {
-        return new SSTFScheduler(
+    public static CLookScheduler from(Request request) {
+        return new CLookScheduler(
                 Cylinders.from(request.getRequestedCylinders()),
                 null,
                 request.getStartCylinderNumber(),
                 ZERO,
-                SSTFQueue.create()
+                CLookQueue.create(),
+                ZERO,
+                request.getTotalCylinderCount() - 1,
+                request.getScanDirection().getScanDirection(),
+                false
         );
     }
 
@@ -48,8 +66,8 @@ public class SSTFScheduler extends SeekTimeScheduler {
                 continue;
             }
 
-            // 헤드가 현재 타겟 실린더에 도착하였을 경우
-            if (didHeadReachTargetCylinder()) {
+            // head가 현재 타겟 실린더에 도착하였으며 처리 가능하다면
+            if (didHeadReachTargetCylinder() && canHeadProcessTargetCylinder()) {
                 // queue에 있는 동일 번호 실린더들을 가져온다.
                 Cylinders sameCylinders = queue.getSameCylindersFrom(currentTargetCylinder.getNumber());
 
@@ -59,8 +77,7 @@ public class SSTFScheduler extends SeekTimeScheduler {
                  */
                 if (sameCylinders.isEmpty()) {
                     response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue, currentTargetCylinder);
-                }
-                else {
+                } else {
                     sameCylinders.addToFront(currentTargetCylinder);
                     response.add(currentTime, currentHeadLocation, currentTargetCylinder, queue, sameCylinders);
                 }
@@ -99,7 +116,7 @@ public class SSTFScheduler extends SeekTimeScheduler {
         if (!isCurrentTargetCylinderEmpty()) {
             queue.addFront(currentTargetCylinder);
         }
-        currentTargetCylinder = queue.getNextCylinderFrom(currentHeadLocation);
+        currentTargetCylinder = queue.getNextCylinderFrom(currentHeadLocation, currentScanDirection, isHeadOnTheWayBack);
     }
 
     private boolean isCurrentTargetCylinderEmpty() {
@@ -112,6 +129,14 @@ public class SSTFScheduler extends SeekTimeScheduler {
 
     private boolean didHeadReachTargetCylinder() {
         return currentTargetCylinder.hasSameNumberAs(currentHeadLocation);
+    }
+
+    private boolean canHeadProcessTargetCylinder() {
+        return !isHeadOnTheWayBack() || isHeadLocationEndpointCylinder();
+    }
+
+    private boolean isHeadOnTheWayBack() {
+        return isHeadOnTheWayBack;
     }
 
     private void increaseWaitingTimeOfCurrentTargetCylinder() {
@@ -127,32 +152,27 @@ public class SSTFScheduler extends SeekTimeScheduler {
             return;
         }
 
-        int subtractedDistance = currentTargetCylinder.subtractNumberFrom(currentHeadLocation);
-        moveHeadToScanDirectionFrom(subtractedDistance);
-    }
-
-    private void moveHeadToScanDirectionFrom(int subtractedDistance) {
-        if (isPositive(subtractedDistance)) {
-            moveToRight();
+        if (!isTargetCylinderInsideCurrentScanDirection()) {
+            isHeadOnTheWayBack = !isHeadOnTheWayBack;
+            reverseScanDirection();
         }
-        if (isNegative(subtractedDistance)) {
-            moveToLeft();
+        moveHeadToScanDirection();
+    }
+
+    private void moveHeadToScanDirection() {
+        if (currentScanDirection.equals(ScanDirection.LEFT)) {
+            moveHeadToLeft();
+        }
+        if (currentScanDirection.equals(ScanDirection.RIGHT)) {
+            moveHeadToRight();
         }
     }
 
-    private boolean isPositive(int value) {
-        return value > ZERO;
-    }
-
-    private boolean isNegative(int value) {
-        return value < ZERO;
-    }
-
-    private void moveToRight() {
+    private void moveHeadToRight() {
         currentHeadLocation++;
     }
 
-    private void moveToLeft() {
+    private void moveHeadToLeft() {
         currentHeadLocation--;
     }
 
@@ -162,5 +182,37 @@ public class SSTFScheduler extends SeekTimeScheduler {
 
     private void increaseWaitingTimeOfQueue() {
         queue.increaseWaitingTime();
+    }
+
+    private boolean isHeadLocationFirstCylinder() {
+        return currentHeadLocation == firstCylinderNumber;
+    }
+
+    private boolean isHeadLocationLastCylinder() {
+        return currentHeadLocation == lastCylinderNumber;
+    }
+
+    private boolean isHeadLocationEndpointCylinder() {
+        return isHeadLocationFirstCylinder() || isHeadLocationLastCylinder();
+    }
+
+    private boolean isTargetCylinderInsideCurrentScanDirection() {
+        if (isCurrentTargetCylinderEmpty()) {
+            return false;
+        }
+
+        return (currentScanDirection.equals(ScanDirection.LEFT) && currentTargetCylinder.isNumberLessThan(currentHeadLocation))
+                || (currentScanDirection.equals(ScanDirection.RIGHT) && currentTargetCylinder.isNumberGreaterThan(currentHeadLocation));
+    }
+
+    private void reverseScanDirection() {
+        switch (currentScanDirection) {
+            case LEFT:
+                currentScanDirection = ScanDirection.RIGHT;
+                break;
+            case RIGHT:
+                currentScanDirection = ScanDirection.LEFT;
+                break;
+        }
     }
 }

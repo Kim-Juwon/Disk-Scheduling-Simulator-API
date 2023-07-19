@@ -11,12 +11,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class CScanQueue extends Queue {
+public class CLookQueue extends Queue {
     private static final int FRONT = 0;
     private final List<Cylinder> cylinders;
 
-    public static CScanQueue create() {
-        return new CScanQueue(new LinkedList<>());
+    public static CLookQueue create() {
+        return new CLookQueue(new LinkedList<>());
     }
 
     @Override
@@ -107,9 +107,9 @@ public class CScanQueue extends Queue {
         return nextCylinder;
     }
 
-    private boolean isCylinderInRange(Cylinder cylinder, int currentCylinderNumber, ScanDirection currentScanDirection) {
-        return (currentScanDirection.equals(ScanDirection.LEFT) && cylinder.isNumberLessOrEqualsFrom(currentCylinderNumber))
-                || (currentScanDirection.equals(ScanDirection.RIGHT) && cylinder.isNumberGreaterOrEqualsFrom(currentCylinderNumber));
+    private boolean isCylinderInRange(Cylinder cylinder, int currentHeadLocation, ScanDirection currentScanDirection) {
+        return (currentScanDirection.equals(ScanDirection.LEFT) && cylinder.isNumberLessOrEqualsFrom(currentHeadLocation))
+                || (currentScanDirection.equals(ScanDirection.RIGHT) && cylinder.isNumberGreaterOrEqualsFrom(currentHeadLocation));
     }
 
     public Cylinders getSameCylindersFrom(int cylinderNumber) {

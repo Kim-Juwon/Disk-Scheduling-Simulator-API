@@ -11,7 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class FCFSQueue extends Queue {
     private static final int EXIT = 0;
-    private final List<Cylinder> requestedCylinderQueue;
+    private final List<Cylinder> cylinders;
 
     public static FCFSQueue create() {
         return new FCFSQueue(new LinkedList<>());
@@ -19,12 +19,12 @@ public class FCFSQueue extends Queue {
 
     @Override
     public void add(Cylinder cylinder) {
-        requestedCylinderQueue.add(cylinder);
+        cylinders.add(cylinder);
     }
 
     @Override
     public boolean isEmpty() {
-        return requestedCylinderQueue.isEmpty();
+        return cylinders.isEmpty();
     }
 
     public Cylinder getNextCylinder() {
@@ -32,33 +32,33 @@ public class FCFSQueue extends Queue {
             return null;
         }
 
-        return requestedCylinderQueue.remove(EXIT);
+        return cylinders.remove(EXIT);
     }
 
     @Override
     public List<Cylinder> peekCurrentCylinders() {
-        return requestedCylinderQueue;
+        return cylinders;
     }
 
-    public Cylinders getNextSameCylinders(int cylinderNumber) {
-        Cylinders cylinders = Cylinders.create();
+    public Cylinders getImmediatelyNextSameCylindersFrom(int cylinderNumber) {
+        Cylinders immediatelyNextSameCylinders = Cylinders.create();
 
-        for (int i = 0; i < requestedCylinderQueue.size(); i++) {
-            Cylinder cylinder = requestedCylinderQueue.get(i);
-            if (!cylinder.hasSameNumber(cylinderNumber)) {
+        for (int i = 0; i < cylinders.size(); i++) {
+            Cylinder cylinder = cylinders.get(i);
+            if (!cylinder.hasSameNumberAs(cylinderNumber)) {
                 break;
             }
 
-            cylinders.addToBack(cylinder);
-            requestedCylinderQueue.remove(i);
+            immediatelyNextSameCylinders.addToBack(cylinder);
+            cylinders.remove(i);
             i--;
         }
 
-        return cylinders;
+        return immediatelyNextSameCylinders;
     }
 
     @Override
     public void increaseWaitingTime() {
-        requestedCylinderQueue.forEach(Cylinder::increaseWaitingTime);
+        cylinders.forEach(Cylinder::increaseWaitingTime);
     }
 }
