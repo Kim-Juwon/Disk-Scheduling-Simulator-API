@@ -148,10 +148,10 @@ public class ScanScheduler extends SeekTimeScheduler {
     }
 
     private void moveHeadToScanDirection() {
-        if (currentScanDirection.equals(ScanDirection.LEFT)) {
+        if (isCurrentScanDirectionLeft()) {
             moveToLeft();
         }
-        if (currentScanDirection.equals(ScanDirection.RIGHT)) {
+        if (isCurrentScanDirectionRight()) {
             moveToRight();
         }
     }
@@ -182,6 +182,14 @@ public class ScanScheduler extends SeekTimeScheduler {
 
     private boolean isHeadLocationLastCylinder() {
         return currentHeadLocation == lastCylinderNumber;
+    }
+
+    private boolean isCurrentScanDirectionLeft() {
+        return currentScanDirection.equals(ScanDirection.LEFT);
+    }
+
+    private boolean isCurrentScanDirectionRight() {
+        return currentScanDirection.equals(ScanDirection.RIGHT);
     }
 
     private void reverseScanDirection() {

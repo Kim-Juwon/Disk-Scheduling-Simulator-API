@@ -189,8 +189,8 @@ public class CLookScheduler extends SeekTimeScheduler {
             return false;
         }
 
-        return (currentScanDirection.equals(ScanDirection.RIGHT) && queue.isGreaterNumberCylinderExistThan(currentHeadLocation))
-                || (currentScanDirection.equals(ScanDirection.LEFT) && queue.isLessNumberCylinderExistThan(currentHeadLocation));
+        return (isCurrentScanDirectionLeft() && queue.isLessNumberCylinderExistThan(currentHeadLocation))
+                || (isCurrentScanDirectionRight() && queue.isGreaterNumberCylinderExistThan(currentHeadLocation));
     }
 
     private boolean isTargetCylinderInsideCurrentScanDirection() {
@@ -198,8 +198,16 @@ public class CLookScheduler extends SeekTimeScheduler {
             return false;
         }
 
-        return (currentScanDirection.equals(ScanDirection.LEFT) && currentTargetCylinder.isNumberLessThan(currentHeadLocation))
-                || (currentScanDirection.equals(ScanDirection.RIGHT) && currentTargetCylinder.isNumberGreaterThan(currentHeadLocation));
+        return (isCurrentScanDirectionLeft() && currentTargetCylinder.isNumberLessThan(currentHeadLocation))
+                || (isCurrentScanDirectionRight() && currentTargetCylinder.isNumberGreaterThan(currentHeadLocation));
+    }
+
+    private boolean isCurrentScanDirectionLeft() {
+        return currentScanDirection.equals(ScanDirection.LEFT);
+    }
+
+    private boolean isCurrentScanDirectionRight() {
+        return currentScanDirection.equals(ScanDirection.RIGHT);
     }
 
     private void reverseScanDirection() {
