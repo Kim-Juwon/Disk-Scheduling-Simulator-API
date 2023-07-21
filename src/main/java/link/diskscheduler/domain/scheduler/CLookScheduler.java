@@ -132,7 +132,7 @@ public class CLookScheduler extends SeekTimeScheduler {
     }
 
     private boolean canHeadProcessTargetCylinder() {
-        return !isHeadOnTheWayBack() || isHeadLocationEndpointCylinder();
+        return !isHeadOnTheWayBack() || !isCylinderInsideCurrentScanDirectionExistInQueue();
     }
 
     private boolean isHeadOnTheWayBack() {
@@ -184,16 +184,13 @@ public class CLookScheduler extends SeekTimeScheduler {
         queue.increaseWaitingTime();
     }
 
-    private boolean isHeadLocationFirstCylinder() {
-        return currentHeadLocation == firstCylinderNumber;
-    }
+    private boolean isCylinderInsideCurrentScanDirectionExistInQueue() {
+        if (isCurrentTargetCylinderEmpty() || queue.isEmpty()) {
+            return false;
+        }
 
-    private boolean isHeadLocationLastCylinder() {
-        return currentHeadLocation == lastCylinderNumber;
-    }
-
-    private boolean isHeadLocationEndpointCylinder() {
-        return isHeadLocationFirstCylinder() || isHeadLocationLastCylinder();
+        return (currentScanDirection.equals(ScanDirection.RIGHT) && queue.isGreaterNumberCylinderExistThan(currentHeadLocation))
+                || (currentScanDirection.equals(ScanDirection.LEFT) && queue.isLessNumberCylinderExistThan(currentHeadLocation));
     }
 
     private boolean isTargetCylinderInsideCurrentScanDirection() {

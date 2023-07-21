@@ -127,6 +127,16 @@ public class CLookQueue extends Queue {
         return sameCylinders;
     }
 
+    public boolean isGreaterNumberCylinderExistThan(int cylinderNumber) {
+        return cylinders.stream()
+                .anyMatch(cylinder -> cylinder.isNumberGreaterThan(cylinderNumber));
+    }
+
+    public boolean isLessNumberCylinderExistThan(int cylinderNumber) {
+        return cylinders.stream()
+                .anyMatch(cylinder -> cylinder.isNumberLessThan(cylinderNumber));
+    }
+
     @Override
     public void increaseWaitingTime() {
         cylinders.forEach(Cylinder::increaseWaitingTime);
