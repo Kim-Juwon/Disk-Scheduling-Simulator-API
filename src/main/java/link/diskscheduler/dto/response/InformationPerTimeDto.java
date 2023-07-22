@@ -11,65 +11,58 @@ import java.util.stream.Collectors;
 
 @Getter
 public class InformationPerTimeDto {
-    private Integer currentTime;
-    private Integer currentCylinderNumber;
-    private Integer targetCylinderNumber;
+    private Integer time;
+    private Integer headLocation;
+    private Integer targetCylinder;
     private List<Integer> queue;
     private List<ProcessedCylinderDto> processedCylinders;
 
-    private InformationPerTimeDto(Integer currentTime, Integer currentCylinderNumber, Integer targetCylinderNumber, List<Integer> queue) {
-        this.currentTime = currentTime;
-        this.currentCylinderNumber = currentCylinderNumber;
-        this.targetCylinderNumber = targetCylinderNumber;
+    private InformationPerTimeDto(Integer time, Integer headLocation, Integer targetCylinder, List<Integer> queue) {
+        this.time = time;
+        this.headLocation = headLocation;
+        this.targetCylinder = targetCylinder;
         this.queue = queue;
     }
 
-    private InformationPerTimeDto(Integer currentTime, Integer currentCylinderNumber, Integer targetCylinderNumber, List<Integer> queue, List<ProcessedCylinderDto> processedCylinders) {
-        this(currentTime, currentCylinderNumber, targetCylinderNumber, queue);
+    private InformationPerTimeDto(Integer time, Integer headLocation, Integer targetCylinder, List<Integer> queue, List<ProcessedCylinderDto> processedCylinders) {
+        this(time, headLocation, targetCylinder, queue);
         this.processedCylinders = processedCylinders;
     }
 
-    public static InformationPerTimeDto of(Integer currentTime, Integer currentCylinderNumber, Cylinder targetCylinder, Queue queue) {
-        Integer targetCylinderNumber;
-        if (targetCylinder == null) {
-            targetCylinderNumber = null;
-        } else {
-            targetCylinderNumber = targetCylinder.getNumber();
-        }
-
+    public static InformationPerTimeDto of(Integer time, Integer headLocation, Cylinder targetCylinder, Queue queue) {
         return new InformationPerTimeDto(
-                currentTime,
-                currentCylinderNumber,
-                targetCylinderNumber,
+                time,
+                headLocation,
+                targetCylinder == null ? null : targetCylinder.getNumber(),
                 queue.peekCurrentCylinders().stream()
                         .map(Cylinder::getNumber)
                         .collect(Collectors.toList())
         );
     }
 
-    public static InformationPerTimeDto of(Integer currentTime, Integer currentCylinderNumber, Cylinder targetCylinder, Queue queue, Cylinder cylinder) {
+    public static InformationPerTimeDto of(Integer time, Integer headLocation, Cylinder targetCylinder, Queue queue, Cylinder processedCylinder) {
         return new InformationPerTimeDto(
-                currentTime,
-                currentCylinderNumber,
-                targetCylinder.getNumber(),
+                time,
+                headLocation,
+                targetCylinder == null ? null : targetCylinder.getNumber(),
                 queue.peekCurrentCylinders().stream()
                         .map(Cylinder::getNumber)
                         .collect(Collectors.toList()),
                 new ArrayList<>() {{
-                    add(ProcessedCylinderDto.from(cylinder));
+                    add(ProcessedCylinderDto.from(processedCylinder));
                 }}
         );
     }
 
-    public static InformationPerTimeDto of(Integer currentTime, Integer currentCylinderNumber, Cylinder targetCylinder, Queue queue, Cylinders cylinders) {
+    public static InformationPerTimeDto of(Integer time, Integer headLocation, Cylinder targetCylinder, Queue queue, Cylinders processedCylinders) {
         return new InformationPerTimeDto(
-                currentTime,
-                currentCylinderNumber,
-                targetCylinder.getNumber(),
+                time,
+                headLocation,
+                targetCylinder == null ? null : targetCylinder.getNumber(),
                 queue.peekCurrentCylinders().stream()
                         .map(Cylinder::getNumber)
                         .collect(Collectors.toList()),
-                cylinders.getCylinders().stream()
+                processedCylinders.getCylinders().stream()
                         .map(ProcessedCylinderDto::from)
                         .collect(Collectors.toList())
         );

@@ -26,7 +26,7 @@ public class FCFSScheduler extends SeekTimeScheduler {
         return new FCFSScheduler(
                 Cylinders.from(request.getRequestedCylinders()),
                 null,
-                request.getStartCylinderNumber(),
+                request.getHeadLocation(),
                 ZERO,
                 FCFSQueue.create()
         );

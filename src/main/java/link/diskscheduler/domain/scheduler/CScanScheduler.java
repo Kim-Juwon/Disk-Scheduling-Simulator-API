@@ -40,11 +40,11 @@ public class CScanScheduler extends SeekTimeScheduler {
         return new CScanScheduler(
                 Cylinders.from(request.getRequestedCylinders()),
                 null,
-                request.getStartCylinderNumber(),
+                request.getHeadLocation(),
                 ZERO,
                 CScanQueue.create(),
                 ZERO,
-                request.getTotalCylinderCount() - 1,
+                request.getCylinderCount() - 1,
                 request.getScanDirection().getScanDirection(),
                 false
         );

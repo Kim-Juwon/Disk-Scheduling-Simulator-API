@@ -37,11 +37,11 @@ public class LookScheduler extends SeekTimeScheduler {
         return new LookScheduler(
                 Cylinders.from(request.getRequestedCylinders()),
                 null,
-                request.getStartCylinderNumber(),
+                request.getHeadLocation(),
                 ZERO,
                 LookQueue.create(),
                 ZERO,
-                request.getTotalCylinderCount() - 1,
+                request.getCylinderCount() - 1,
                 request.getScanDirection().getScanDirection()
         );
     }

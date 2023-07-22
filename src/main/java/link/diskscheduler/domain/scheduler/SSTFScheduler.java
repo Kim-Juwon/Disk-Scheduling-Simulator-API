@@ -26,7 +26,7 @@ public class SSTFScheduler extends SeekTimeScheduler {
         return new SSTFScheduler(
                 Cylinders.from(request.getRequestedCylinders()),
                 null,
-                request.getStartCylinderNumber(),
+                request.getHeadLocation(),
                 ZERO,
                 SSTFQueue.create()
         );

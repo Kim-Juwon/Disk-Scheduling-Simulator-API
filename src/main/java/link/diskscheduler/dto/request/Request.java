@@ -15,12 +15,12 @@ public class Request {
     @NotNull
     @Min(ProgramConstant.MIN_CYLINDER_COUNT)
     @Max(ProgramConstant.MAX_CYLINDER_COUNT)
-    private Integer totalCylinderCount;
+    private Integer cylinderCount;
 
     @NotNull
     @Min(ProgramConstant.MIN_CYLINDER_NUMBER)
     @Max(ProgramConstant.MAX_CYLINDER_NUMBER)
-    private Integer startCylinderNumber;
+    private Integer headLocation;
 
     @NotNull
     @Size(min = ProgramConstant.MIN_REQUESTED_CYLINDER_COUNT, max = ProgramConstant.MAX_REQUESTED_CYLINDER_COUNT)

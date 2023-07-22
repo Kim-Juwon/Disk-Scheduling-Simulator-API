@@ -40,11 +40,11 @@ public class CLookScheduler extends SeekTimeScheduler {
         return new CLookScheduler(
                 Cylinders.from(request.getRequestedCylinders()),
                 null,
-                request.getStartCylinderNumber(),
+                request.getHeadLocation(),
                 ZERO,
                 CLookQueue.create(),
                 ZERO,
-                request.getTotalCylinderCount() - 1,
+                request.getCylinderCount() - 1,
                 request.getScanDirection().getScanDirection(),
                 false
         );

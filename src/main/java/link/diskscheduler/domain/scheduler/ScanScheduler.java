@@ -37,11 +37,11 @@ public class ScanScheduler extends SeekTimeScheduler {
         return new ScanScheduler(
                 Cylinders.from(request.getRequestedCylinders()),
                 null,
-                request.getStartCylinderNumber(),
+                request.getHeadLocation(),
                 ZERO,
                 ScanQueue.create(),
                 ZERO,
-                request.getTotalCylinderCount() - 1,
+                request.getCylinderCount() - 1,
                 request.getScanDirection().getScanDirection()
         );
     }

@@ -19,15 +19,15 @@ public class Response {
         return new Response(new ArrayList<>());
     }
 
-    public void add(int currentTime, int currentCylinderNumber, Cylinder targetCylinder, Queue queue) {
-        informations.add(InformationPerTimeDto.of(currentTime, currentCylinderNumber, targetCylinder, queue));
+    public void add(int time, int headLocation, Cylinder targetCylinder, Queue queue) {
+        informations.add(InformationPerTimeDto.of(time, headLocation, targetCylinder, queue));
     }
 
-    public void add(int currentTime, int currentCylinderNumber, Cylinder targetCylinder, Queue queue, Cylinder cylinder) {
-        informations.add(InformationPerTimeDto.of(currentTime, currentCylinderNumber, targetCylinder, queue, cylinder));
+    public void add(int time, int headLocation, Cylinder targetCylinder, Queue queue, Cylinder processedCylinder) {
+        informations.add(InformationPerTimeDto.of(time, headLocation, targetCylinder, queue, processedCylinder));
     }
 
-    public void add(int currentTime, int currentCylinderNumber, Cylinder targetCylinder, Queue queue, Cylinders cylinders) {
-        informations.add(InformationPerTimeDto.of(currentTime, currentCylinderNumber, targetCylinder, queue, cylinders));
+    public void add(int time, int headLocation, Cylinder targetCylinder, Queue queue, Cylinders processedCylinders) {
+        informations.add(InformationPerTimeDto.of(time, headLocation, targetCylinder, queue, processedCylinders));
     }
 }
