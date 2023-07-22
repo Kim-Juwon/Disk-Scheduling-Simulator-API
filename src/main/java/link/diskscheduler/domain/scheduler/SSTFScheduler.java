@@ -17,7 +17,8 @@ public class SSTFScheduler extends SeekTimeScheduler {
             Cylinder currentTargetCylinder,
             int currentHeadLocation,
             int currentTime,
-            SSTFQueue sstfQueue) {
+            SSTFQueue sstfQueue
+    ) {
         super(notArrivedCylinders, currentTargetCylinder, currentHeadLocation, currentTime);
         this.queue = sstfQueue;
     }

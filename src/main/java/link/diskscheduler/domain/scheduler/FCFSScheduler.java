@@ -17,7 +17,8 @@ public class FCFSScheduler extends SeekTimeScheduler {
             Cylinder currentTargetCylinder,
             int currentHeadLocation,
             int currentTime,
-            FCFSQueue fcfsQueue) {
+            FCFSQueue fcfsQueue
+    ) {
         super(notArrivedCylinders, currentTargetCylinder, currentHeadLocation, currentTime);
         this.queue = fcfsQueue;
     }
