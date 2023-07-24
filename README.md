@@ -63,7 +63,7 @@ FCFS, SSTF, Scan, C-Scan, Look, C-Look
 - 장점
   - Scan 알고리즘에서의 불필요한 head 이동 제거
 
-### `C-Look`
+### `C-Look (Circular-Look)`
 - C-Scan과 유사하며, 현재 진행 방향에 더 이상 요청이 없으면 제일 반대편에 요청된 실린더로 이동 후 재시작
 - 장점
   - C-Scan 알고리즘에서의 불필요한 head 이동 제거
