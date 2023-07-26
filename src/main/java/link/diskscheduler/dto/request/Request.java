@@ -4,6 +4,7 @@ import link.diskscheduler.constant.ProgramConstant;
 import link.diskscheduler.exception.UnprocessableEntityException;
 import lombok.Getter;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -12,33 +13,41 @@ import java.util.List;
 
 @Getter
 public class Request {
-    @NotNull
-    @Min(ProgramConstant.MIN_CYLINDER_COUNT)
-    @Max(ProgramConstant.MAX_CYLINDER_COUNT)
+    @NotNull(message = "cylinderCount의 값은 필수입니다.")
+    @Min(value = ProgramConstant.MIN_CYLINDER_COUNT, message = "cylinderCount의 값이 범위를 벗어났습니다.")
+    @Max(value = ProgramConstant.MAX_CYLINDER_COUNT, message = "cylinderCount의 값이 범위를 벗어났습니다.")
     private Integer cylinderCount;
 
-    @NotNull
-    @Min(ProgramConstant.MIN_CYLINDER_NUMBER)
-    @Max(ProgramConstant.MAX_CYLINDER_NUMBER)
+    @NotNull(message = "headLocation의 값은 필수입니다.")
+    @Min(value = ProgramConstant.MIN_CYLINDER_NUMBER, message = "headLocation의 값이 범위를 벗어났습니다.")
+    @Max(value = ProgramConstant.MAX_CYLINDER_NUMBER, message = "headLocation의 값이 범위를 벗어났습니다.")
     private Integer headLocation;
 
-    @NotNull
-    @Size(min = ProgramConstant.MIN_REQUESTED_CYLINDER_COUNT, max = ProgramConstant.MAX_REQUESTED_CYLINDER_COUNT)
+    @Valid
+    @NotNull(message = "requestedCylinders의 값은 필수입니다.")
+    @Size(
+            min = ProgramConstant.MIN_REQUESTED_CYLINDER_COUNT,
+            max = ProgramConstant.MAX_REQUESTED_CYLINDER_COUNT,
+            message = "requestedCylinders의 size 범위를 벗어났습니다."
+    )
     private List<CylinderDto> requestedCylinders;
 
-    @NotNull
+    @NotNull(message = "algorithm은 필수입니다.")
     private AlgorithmDto algorithm;
 
     private ScanDirectionDto scanDirection;
 
-    /**
-     *   - algorithm이 있을땐 scanDirection이 not null
+    /*
+         - algorithm이 null이 아니면 scanDirection이 필수
+         - algorithm이 null이면 scanDirection은 선택
      */
     public void validateConstraints() {
-        if ((algorithm.equals(AlgorithmDto.SCAN) || algorithm.equals(AlgorithmDto.C_SCAN) || algorithm.equals(AlgorithmDto.LOOK) || algorithm.equals(AlgorithmDto.C_LOOK)) && scanDirection == null) {
-            throw new UnprocessableEntityException("scan direction is not null");
+        if ((algorithm.equals(AlgorithmDto.SCAN)
+                || algorithm.equals(AlgorithmDto.C_SCAN)
+                || algorithm.equals(AlgorithmDto.LOOK)
+                || algorithm.equals(AlgorithmDto.C_LOOK))
+                && scanDirection == null) {
+            throw new UnprocessableEntityException("algorithm의 값이 null이 아니면 scanDirection은 필수입니다.");
         }
-
-
     }
 }

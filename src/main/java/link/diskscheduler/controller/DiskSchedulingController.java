@@ -17,6 +17,7 @@ public class DiskSchedulingController {
 
     @PostMapping("/schedule")
     public Response schedule(@RequestBody @Valid Request request) {
+        request.validateConstraints();
         return schedulingService.schedule(request);
     }
 }
