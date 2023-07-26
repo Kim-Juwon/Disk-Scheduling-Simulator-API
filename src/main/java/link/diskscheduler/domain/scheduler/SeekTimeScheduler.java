@@ -5,6 +5,8 @@ import link.diskscheduler.domain.cylinder.Cylinders;
 import link.diskscheduler.dto.request.AlgorithmDto;
 import link.diskscheduler.dto.request.Request;
 import link.diskscheduler.dto.response.Response;
+import link.diskscheduler.exception.CustomException;
+import link.diskscheduler.exception.ExceptionMessage;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
@@ -39,6 +41,6 @@ public abstract class SeekTimeScheduler {
             return CLookScheduler.from(request);
         }
 
-        return null;
+        throw new CustomException(ExceptionMessage.NO_SCHEDULER_EXISTS_FOR_THE_REQUESTED_ALGORITHM);
     }
 }
